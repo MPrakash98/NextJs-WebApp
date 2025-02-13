@@ -3,7 +3,7 @@ declare global {
   var mongoose: any;
 }
 
-const MONGODB_URI = process.env.MONGODB_URI!;
+const MONGODB_URI = process.env.NEXT_PUBLIC_MONGODB_URI!;
 
 if (!MONGODB_URI) {
   throw new Error("MONGODB_URI is missing in .env.local");
@@ -12,8 +12,6 @@ if (!MONGODB_URI) {
 let cached = global.mongoose || { conn: null, promise: null };
 
 export async function connectToDatabase() {
-  console.log("called");
-  
   if (cached.conn) return cached.conn;
   
   if (!cached.promise) {

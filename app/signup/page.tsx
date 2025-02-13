@@ -4,23 +4,47 @@ import { signIn } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
 import Notify from "@/components/common/Toast";
+import { useRouter } from "next/navigation";
 
-export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+export default function SignUpPage() {
+  const router = useRouter();
+  const [name, setName] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try{
-      await signIn("credentials", { email, password, callbackUrl: "/dashboard" });
-      Notify('You have signed in successfully', 'success')
-    } catch (error) {
-      Notify('Error Occurred while logging in', 'error')
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({name, email, password}),
+    });
+
+    const data = await res.json();
+    setLoading(false);
+
+    if (!res.ok) {
+        Notify('Failed to Register ', 'error')
+        return;
+    } else {
+        Notify('User added successfully', 'success')
+        setName("");
+        setEmail("");
+        setPassword("");
+        setTimeout(() => {
+            router.push('/login')
+        }, 3000)
+    }
+    } catch(error) {
+      console.log(error);
+      // Notify(error?.message, 'error')
     } finally {
       setLoading(false);
     }
+        
   };
 
   return (
@@ -38,10 +62,21 @@ export default function LoginPage() {
         </div> */}
 
         {/* Title */}
-        <h2 className="text-2xl font-semibold text-center text-gray-700 mb-4">Welcome Back!</h2>
+        <h2 className="text-2xl font-semibold text-center text-gray-700 mb-4">Enter Your Details</h2>
 
         {/* Login Form */}
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={handleRegister} className="space-y-4">
+        <div>
+            <label className="block text-sm font-medium text-gray-700">Name</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Enter your full name"
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
+              required
+            />
+          </div>
           <div>
             <label className="block text-sm font-medium text-gray-700">Email</label>
             <input
@@ -71,21 +106,16 @@ export default function LoginPage() {
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition duration-300 disabled:bg-gray-400"
             disabled={loading}
           >
-            {loading ? "Signing in..." : "Sign In"}
+            {loading ? "Signing you up..." : "Sign Up"}
           </button>
         </form>
 
         {/* Additional Links */}
-        <div className="text-center mt-4 text-sm">
-          <Link href="#" className="text-blue-500 hover:underline">
-            Forgot password?
-          </Link>
-        </div>
 
         <div className="text-center mt-2 text-sm">
-          Don't have an account?{" "}
-          <Link href="/signup" className="text-blue-500 hover:underline">
-            Sign up
+          Already have an account?{" "}
+          <Link href="/login" className="text-blue-500 hover:underline">
+            Go to Login
           </Link>
         </div>
       </div>
